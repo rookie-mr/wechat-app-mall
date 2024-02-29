@@ -209,12 +209,16 @@ Page({
       title: '加载中',
       mask: true
     })
+    const accountInfo = wx.getAccountInfoSync()
+    const envVersion = accountInfo.miniProgram.envVersion
     WXAPI.wxaQrcode({
       scene: 'inviter_id=' + wx.getStorageSync('uid'),
       page: 'pages/index/index',
       is_hyaline: true,
       autoColor: true,
-      expireHours: 1
+      expireHours: 1,
+      env_version: envVersion,
+      check_path: envVersion == 'release' ? true : false,
     }).then(res => {
       wx.hideLoading()
       if (res.code ==  41030) {
@@ -267,10 +271,39 @@ Page({
             })
           },
           fail: (res) => {
-            wx.showToast({
-              title: res.errMsg,
-              icon: 'none'
-            })
+            if (res.errMsg.indexOf('fail privacy permission is not authorized') != -1) {
+              wx.showModal({
+                content: '请阅读并同意隐私条款以后才能继续本操作',
+                confirmText: '阅读协议',
+                cancelText: '取消',
+                success (res) {
+                  if (res.confirm) {
+                    wx.requirePrivacyAuthorize() // 弹出用户隐私授权框
+                  }
+                }
+              })
+            } else if (res.errMsg.indexOf('fail auth deny') != -1) {
+              wx.showModal({
+                content: '本次操作需要您同意并将图片写入手机相册',
+                confirmText: '立即授权',
+                cancelText: '取消',
+                success (res) {
+                  if (res.confirm) {
+                    // 弹出设置窗口，让用户去设置
+                    wx.openSetting({
+                      withSubscriptions: true,
+                      fail: aaa => console.log(aaa)
+                    });
+                  }
+                }
+              })
+            } else {
+              console.error(res);
+              wx.showToast({
+                title: res.errMsg,
+                icon: 'none'
+              })
+            }
           }
         })
       }
@@ -313,6 +346,13 @@ Page({
       fail: function (res) {
         // 转发失败
       }
+    }
+  },
+  onShareTimeline() {    
+    return {
+      title: '"' + wx.getStorageSync('mallName') + '" ' + wx.getStorageSync('share_profile'),
+      query: 'inviter_id=' + wx.getStorageSync('uid'),
+      imageUrl: this.data.goodsDetail.basicInfo.pic
     }
   },
   goApply() {

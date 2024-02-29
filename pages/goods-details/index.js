@@ -1,6 +1,7 @@
 const WXAPI = require('apifm-wxapi')
 const TOOLS = require('../../utils/tools.js')
 const AUTH = require('../../utils/auth')
+const CONFIG = require('../../config.js')
 import Poster from 'wxa-plugin-canvas/poster/poster'
 
 Page({
@@ -64,10 +65,14 @@ Page({
     AUTH.checkHasLogined().then(isLogined => {
       if (!isLogined) {
         AUTH.authorize().then( aaa => {
-          AUTH.bindSeller()
+          if (CONFIG.bindSeller) {
+            AUTH.bindSeller()
+          }
         })
       } else {
-        AUTH.bindSeller()
+        if (CONFIG.bindSeller) {
+          AUTH.bindSeller()
+        }
       }
     })
     this.data.goodsId = e.id
@@ -82,12 +87,15 @@ Page({
     }
     this.setData({
       goodsDetailSkuShowType,
-      curuid: wx.getStorageSync('uid')
+      curuid: wx.getStorageSync('uid'),
+      customerServiceType: CONFIG.customerServiceType
     })
     this.readConfigVal()
     this.getGoodsDetailAndKanjieInfo(this.data.goodsId)
     this.shippingCartInfo()
     this.goodsAddition()
+    // 弹出编辑昵称头像框
+    getApp().initNickAvatarUrlPOP(this)
   },
   readConfigVal() {
     // 读取系统参数
@@ -763,6 +771,19 @@ Page({
     }
     return _data
   },
+  onShareTimeline() {
+    let title = this.data.goodsDetail.basicInfo.name
+    let query = 'id=' + this.data.goodsDetail.basicInfo.id + '&inviter_id=' + wx.getStorageSync('uid')
+    if (this.data.kjJoinUid) {
+      title = this.data.curKanjiaprogress.joiner.nick + '邀请您帮TA砍价'
+      query += '&kjJoinUid=' + this.data.kjJoinUid
+    }
+    return {
+      title,
+      query,
+      imageUrl: this.data.goodsDetail.basicInfo.pic
+    }
+  },
   reputation: function (goodsId) {
     var that = this;
     WXAPI.goodsReputationV2({
@@ -894,12 +915,17 @@ Page({
   },
   async drawSharePic() {
     const _this = this
+    // https://www.yuque.com/apifm/nu0f75/ak40es
+    const accountInfo = wx.getAccountInfoSync()
+    const envVersion = accountInfo.miniProgram.envVersion
     const qrcodeRes = await WXAPI.wxaQrcode({
       scene: _this.data.goodsDetail.basicInfo.id + ',' + wx.getStorageSync('uid'),
       page: 'pages/goods-details/index',
       is_hyaline: true,
       autoColor: true,
-      expireHours: 1
+      expireHours: 1,
+      env_version: envVersion,
+      check_path: envVersion == 'release' ? true : false,
     })
     if (qrcodeRes.code != 0) {
       wx.showToast({
@@ -1013,11 +1039,44 @@ Page({
         })
       },
       fail: (res) => {
-        wx.showToast({
-          title: res.errMsg,
-          icon: 'none',
-          duration: 2000
-        })
+        if (res.errMsg.indexOf('fail privacy permission is not authorized') != -1) {
+          wx.showModal({
+            content: '请阅读并同意隐私条款以后才能继续本操作',
+            confirmText: '阅读协议',
+            cancelText: '取消',
+            success (res) {
+              if (res.confirm) {
+                wx.requirePrivacyAuthorize() // 弹出用户隐私授权框
+              }
+            }
+          })
+        } else if (res.errMsg.indexOf('fail auth deny') != -1) {
+          wx.showModal({
+            content: '本次操作需要您同意并将图片写入手机相册',
+            confirmText: '立即授权',
+            cancelText: '取消',
+            success (res) {
+              if (res.confirm) {
+                // 弹出设置窗口，让用户去设置
+                wx.openSetting({
+                  withSubscriptions: true,
+                  fail: aaa => console.log(aaa)
+                });
+              }
+            }
+          })
+        } else if (res.errMsg.indexOf('fail cancel') != -1) {
+          wx.showToast({
+            title: '已取消',
+            icon: 'none'
+          })
+        } else {
+          console.error(res);
+          wx.showToast({
+            title: res.errMsg,
+            icon: 'none'
+          })
+        }
       }
     })
   },
@@ -1054,6 +1113,20 @@ Page({
   backToHome() {
     wx.switchTab({
       url: '/pages/index/index',
+    })
+  },
+  customerService() {
+    wx.openCustomerServiceChat({
+      extInfo: {url: wx.getStorageSync('customerServiceChatUrl')},
+      corpId: wx.getStorageSync('customerServiceChatCorpId'),
+      showMessageCard: true,
+      sendMessageTitle: this.data.goodsDetail.basicInfo.name,
+      sendMessagePath: '/pages/goods-details/index?id=' + this.data.goodsDetail.basicInfo.id,
+      sendMessageImg: this.data.goodsDetail.basicInfo.pic,
+      success: res => {},
+      fail: err => {
+        console.error(err)
+      }
     })
   },
 })

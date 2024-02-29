@@ -154,8 +154,11 @@
             if (!goodsDetail || !goodsDetail.basicInfo) {
               return "100"
             }
-            var goodReputation = goodsDetail.basicInfo.numberGoodReputation / goodsDetail.basicInfo.numberOrders * 100
+            var goodReputation = goodsDetail.basicInfo.numberGoodReputation / goodsDetail.basicInfo.numberReputation * 100
             goodReputation = goodReputation.toFixed(0)
+            if (goodReputation > 100) {
+              goodReputation = 100
+            }
             return goodReputation
           }
         }
@@ -196,7 +199,8 @@
     </view>
   </scroll-view>
   <van-goods-action wx:if="{{!curGoodsKanjia}}">
-    <van-goods-action-icon icon="chat-o" text="客服" open-type="contact"
+    <van-goods-action-icon wx:if="{{ customerServiceType == 'QW' }}" icon="chat-o" text="客服" bind:click="customerService" />
+    <van-goods-action-icon wx:else icon="chat-o" text="客服" open-type="contact"
       send-message-title="{{goodsDetail.basicInfo.name}}" send-message-img="{{goodsDetail.basicInfo.pic}}"
       send-message-path="/pages/goods-details/index?id={{goodsDetail.basicInfo.id}}" show-message-card="{{ true }}" />
     <van-goods-action-icon icon="cart-o" text="购物车" bind:click="goShopCar" info="{{ shopNum ? shopNum : '' }}" />
@@ -263,3 +267,6 @@
   <van-button wx:if="{{shopType =='tobuy' || shopType =='toPingtuan'}}" data-shopType="{{shopType}}" bindtap="buyNow"
     type="danger" block>立即购买</van-button>
 </van-popup>
+
+<!-- 弹出编辑昵称和头像的框 -->
+<login show="{{ nickPopShow }}" avatarUrl="{{ popavatarUrl }}" name="{{ popnick }}" />

@@ -1,6 +1,6 @@
 const WXAPI = require('apifm-wxapi')
 const AUTH = require('../../utils/auth')
-
+const CONFIG = require('../../config.js')
 Page({
 
   /**
@@ -21,12 +21,18 @@ Page({
     AUTH.checkHasLogined().then(isLogined => {
       if (!isLogined) {
         AUTH.authorize().then( aaa => {
-          AUTH.bindSeller()
+          if (CONFIG.bindSeller) {
+            AUTH.bindSeller()
+          }
         })
       } else {
-        AUTH.bindSeller()
+        if (CONFIG.bindSeller) {
+          AUTH.bindSeller()
+        }
       }
     })
+    // 弹出编辑昵称头像框
+    getApp().initNickAvatarUrlPOP(this)
   },
   onShow() {
   },
@@ -83,7 +89,33 @@ Page({
       path: '/pages/invoice/apply?inviter_id=' + wx.getStorageSync('uid')
     }
   },
+  onShareTimeline() {    
+    return {
+      title: '申请开票',
+      query: 'inviter_id=' + wx.getStorageSync('uid'),
+      imageUrl: wx.getStorageSync('share_pic')
+    }
+  },
   async bindSave(e) {
+    const invoice_subscribe_ids = wx.getStorageSync('invoice_subscribe_ids')
+    if (invoice_subscribe_ids) {
+      wx.requestSubscribeMessage({
+        tmplIds: invoice_subscribe_ids.split(','),
+        success(res) {
+          console.log(res)
+        },
+        fail(err) {
+          console.error(err)
+        },
+        complete: (res) => {
+          this._bindSave(e)
+        },
+      })
+    } else {
+      this._bindSave(e)
+    }
+  },
+  async _bindSave(e) {
     // 提交保存
     let comName = e.detail.value.comName;
     let tfn = e.detail.value.tfn;

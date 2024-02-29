@@ -12,6 +12,9 @@
     "pages/goods/fav",
     "pages/goods-details/index",
     "pages/goods-details/vop",
+    "pages/goods-details/day",
+    "pages/goods-details/times01",
+    "pages/goods-details/times02",
     "pages/shop-cart/index",
     "pages/to-pay-order/index",
     "pages/select-address/index",
@@ -56,7 +59,8 @@
     "pages/recycle/orders",
     "pages/recycle/order-detail",
     "pages/card/logs",
-    "pages/notagree/index"
+    "pages/notagree/index",
+    "pages/my/user-code"
   ],
   "requiredPrivateInfos": [
     "getLocation",
@@ -155,6 +159,7 @@
   "usingComponents": {
     "fuwuxieyi": "/components/fuwuxieyi/index",
     "goods-pop": "/components/goods-pop/index",
+    "login": "/components/login/index",
     "mp-html": "mp-html",
     "van-notice-bar": "@vant/weapp/notice-bar/index",
     "van-search": "@vant/weapp/search/index",
@@ -194,7 +199,8 @@
     "van-tabs": "@vant/weapp/tabs/index",
     "van-overlay": "@vant/weapp/overlay/index",
     "van-datetime-picker": "@vant/weapp/datetime-picker/index",
-    "van-area": "@vant/weapp/area/index"
+    "van-area": "@vant/weapp/area/index",
+    "van-action-sheet": "@vant/weapp/action-sheet/index"
   },
   "sitemapLocation": "sitemap.json"
 }

@@ -89,7 +89,9 @@ Page({
         this.doneShow()
       } else {
         AUTH.authorize().then(res => {
-          AUTH.bindSeller()
+          if (CONFIG.bindSeller) {
+            AUTH.bindSeller()
+          }
           this.doneShow()
         })
       }
@@ -154,7 +156,8 @@ Page({
       isNeedLogistics: 1,
       dateStart: nowDate.format('yyyy-MM-dd h:m:s'),
       orderPeriod_open: wx.getStorageSync('orderPeriod_open'),
-      order_pay_user_balance: wx.getStorageSync('order_pay_user_balance')
+      order_pay_user_balance: wx.getStorageSync('order_pay_user_balance'),
+      zt_open_hx: wx.getStorageSync('zt_open_hx'),
     }
     if (e.orderType) {
       _data.orderType = e.orderType
@@ -213,7 +216,7 @@ Page({
       wx.requestSubscribeMessage({
         tmplIds: subscribe_ids.split(','),
         success(res) {
-
+          console.log(res)
         },
         fail(e) {
           console.error(e)
@@ -235,7 +238,7 @@ Page({
       remark: this.data.remark,
       peisongType: this.data.peisongType,
       goodsType: this.data.shopCarType,
-      cardId: this.data.cardId
+      cardId: this.data.cardId,
     }
     if (this.data.deductionScore != '-1') {
       postData.deductionScore = this.data.deductionScore
@@ -337,6 +340,7 @@ Page({
         }
         extJsonStr['联系人'] = this.data.name
         extJsonStr['联系电话'] = this.data.mobile
+        postData.isCanHx = this.data.zt_open_hx == '1' ? true : false
       }
       if (postData.peisongType == 'zq' && this.data.shops) {
         postData.shopIdZt = this.data.shops[this.data.shopIndex].id
@@ -578,6 +582,7 @@ Page({
       orderId = res.data.id
     }
     // 直接弹出支付，取消支付的话，去订单列表
+    await this.userAmount()
     const balance = this.data.balance
     const userScore = this.data.userScore
     if (userScore < res.data.score) {
@@ -815,6 +820,7 @@ Page({
       this.setData({
         bindMobileStatus: res.data.base.mobile ? 1 : 2, // 账户绑定的手机号码状态
         mobile: res.data.base.mobile,
+        name: res.data.base.nick,
       })
     }
   },

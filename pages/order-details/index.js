@@ -1,7 +1,6 @@
 const app = getApp();
 const CONFIG = require('../../config.js')
 const WXAPI = require('apifm-wxapi')
-import wxbarcode from 'wxbarcode'
 
 Page({
     data:{
@@ -28,8 +27,8 @@ Page({
           return;
         }
         // 绘制核销码
-        if (res.data.orderInfo.hxNumber && res.data.orderInfo.status > 0) {
-          wxbarcode.qrcode('qrcode', res.data.orderInfo.hxNumber, 650, 650);
+        if (res.data.orderInfo.hxNumber && res.data.orderInfo.status > 0 && res.data.orderInfo.status < 3) {
+          that.wxaQrcode(res.data.orderInfo.hxNumber)
         }
         // 子快递单信息
         if (res.data.orderLogisticsShippers) {
@@ -42,8 +41,23 @@ Page({
             }
           })
         }
+        let iotControl = false
+        res.data.goods.forEach(ele => {
+          if (ele.iotControl) {
+            iotControl = true
+          }
+        })
+        if (iotControl) {
+          // 读取IoT设备列表
+          that._shopIotDevices()
+        }
+        let orderStores = null
+        if (res.data.orderStores) {
+          orderStores = res.data.orderStores.filter(ele => ele.type == 2)
+        }
         that.setData({
-          orderDetail: res.data
+          orderDetail: res.data,
+          orderStores
         });
       })
     },
@@ -100,7 +114,7 @@ Page({
           reputations_json.pics = []
           for (let index = 0; index < this.data.picsList[i].length; index++) {
             const pic = this.data.picsList[i][index];
-            const res = await WXAPI.uploadFile(wx.getStorageSync('token'), pic.url)
+            const res = await WXAPI.uploadFileV2(wx.getStorageSync('token'), pic.url)
             if (res.code == 0) {
               reputations_json.pics.push(res.data.url)
             }
@@ -139,5 +153,83 @@ Page({
       this.setData({
         picsList
       })
-    }
+    },
+    async wxaQrcode(hxNumber) {
+      // https://www.yuque.com/apifm/nu0f75/ak40es
+      const accountInfo = wx.getAccountInfoSync()
+      const envVersion = accountInfo.miniProgram.envVersion
+      const res = await WXAPI.wxaQrcode({
+        scene: hxNumber,
+        page: 'pages/order-details/scan-result',
+        autoColor: true,
+        expireHours: 1,
+        env_version: envVersion,
+        check_path: envVersion == 'release' ? true : false,
+      })
+      if (res.code != 0) {
+        wx.showModal({
+          content: res.msg,
+          showCancel: false
+        })
+        return
+      }
+      this.setData({
+        hxNumberQrcode: res.data
+      })
+    },
+    async _shopIotDevices() {
+      // https://www.yuque.com/apifm/nu0f75/ibg4icu15di25hfc
+      const res = await WXAPI.shopIotDevices({
+        token: wx.getStorageSync('token'),
+        orderId: this.data.orderId
+      })
+      if (res.code == 0) {
+        this.setData({
+          shopIotDevices: res.data
+        })
+      }
+    },
+    async shopIotCmds(e) {
+      const idx = e.target.dataset.idx
+      const item = this.data.shopIotDevices[idx]
+      // https://www.yuque.com/apifm/nu0f75/rek5dwng8b9cdoko
+      const res = await WXAPI.shopIotCmds({
+        token: wx.getStorageSync('token'),
+        orderId: this.data.orderId,
+        topic: item.topic
+      })
+      if (res.code != 0) {
+        wx.showModal({
+          content: res.msg
+        })
+        return
+      }
+      this.setData({
+        cmdList: res.data,
+        cmdListShow: true
+      })
+    },
+    cmdClose() {
+      this.setData({ cmdListShow: false });
+    },
+  
+    async cmdSelect(event) {
+      // https://www.yuque.com/apifm/nu0f75/uq495hlq3ho5kw4t
+      console.log(event.detail);
+      const res = await WXAPI.shopIotExecute({
+        token: wx.getStorageSync('token'),
+        orderId: this.data.orderId,
+        topic: event.detail.topic,
+        cmdId: event.detail.id,
+      })
+      if (res.code != 0) {
+        wx.showModal({
+          content: res.msg
+        })
+      } else {
+        wx.showToast({
+          title: '已发送',
+        })
+      }
+    },
 })

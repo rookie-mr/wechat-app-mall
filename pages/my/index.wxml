@@ -1,10 +1,16 @@
 <view class="header-box">
-  <button class="avatar" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-    <image class="avatar-img" src="{{ apiUserInfoMap.base.avatarUrl ? apiUserInfoMap.base.avatarUrl : '/images/default.png' }}" mode="aspectFill"></image>
-  </button>
-  <view class="r">
-    <view class="uid">用户ID: {{ apiUserInfoMap.base.id }}</view>
-    <view class="nick" bindtap="editNick">{{ apiUserInfoMap.base.nick ? apiUserInfoMap.base.nick : '点击设置昵称' }}</view>
+  <view class="header-box-left">
+    <button class="avatar" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+      <image class="avatar-img" src="{{ apiUserInfoMap.base.avatarUrl ? apiUserInfoMap.base.avatarUrl : '/images/default.png' }}" mode="aspectFill"></image>
+    </button>
+    <view class="r">
+      <view class="uid">用户ID: {{ apiUserInfoMap.base.id }}</view>
+      <view class="nick" bindtap="editNick">{{ apiUserInfoMap.base.nick ? apiUserInfoMap.base.nick : '点击设置昵称' }}</view>
+    </view>
+  </view>
+  <view class="user-code" bindtap="goUserCode">
+    <van-icon name="qr" size="64rpx" />
+    <view class="txt">会员码</view>
   </view>
 </view>
 <view class="asset">
@@ -97,6 +103,7 @@
   <van-cell wx:if="{{ show_quan_exchange_score == 1 }}" title="积分券兑换积分" is-link url="/pages/score-excharge/index" />
   <van-cell wx:if="{{ show_score_exchange_growth == 1 }}" title="积分兑换成长值" is-link url="/pages/score-excharge/growth" />
   <van-cell title="帮助中心" is-link url="/pages/help/index" />
+  <van-cell wx:if="{{ customerServiceType == 'QW' }}" title="联系客服" is-link bind:click="customerService" />
   <van-cell title="个人信息" is-link url="/pages/my/info-menu" />
   <van-cell title="系统设置" is-link url="/pages/my/setting" />
 </van-cell-group>

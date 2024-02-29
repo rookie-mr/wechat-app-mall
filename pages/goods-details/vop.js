@@ -1,6 +1,7 @@
 const WXAPI = require('apifm-wxapi')
 const TOOLS = require('../../utils/tools.js')
 const AUTH = require('../../utils/auth')
+const CONFIG = require('../../config.js')
 import Poster from 'wxa-plugin-canvas/poster/poster'
 
 Page({
@@ -71,10 +72,14 @@ Page({
     AUTH.checkHasLogined().then(isLogined => {
       if (!isLogined) {
         AUTH.authorize().then( aaa => {
-          AUTH.bindSeller()
+          if (CONFIG.bindSeller) {
+            AUTH.bindSeller()
+          }
         })
       } else {
-        AUTH.bindSeller()
+        if (CONFIG.bindSeller) {
+          AUTH.bindSeller()
+        }
       }
     })
     this.data.goodsId = e.id
@@ -86,7 +91,8 @@ Page({
     }
     this.setData({
       goodsDetailSkuShowType,
-      curuid: wx.getStorageSync('uid')
+      curuid: wx.getStorageSync('uid'),
+      customerServiceType: CONFIG.customerServiceType
     })
     this.getGoodsDetailAndKanjieInfo(this.data.goodsId)
     this.skuImages(this.data.goodsId)
@@ -529,7 +535,7 @@ Page({
     return buyNowInfo;
   },
   onShareAppMessage() {
-    let _data = {
+    return {
       title: this.data.price.skuName,
       path: '/pages/goods-details/vop?id=' + this.data.goodsId + '&goodsId=' + this.data.goodsId2 + '&inviter_id=' + wx.getStorageSync('uid'),
       success: function(res) {
@@ -539,11 +545,13 @@ Page({
         // 转发失败
       }
     }
-    if (this.data.kjJoinUid) {
-      _data.title = this.data.curKanjiaprogress.joiner.nick + '邀请您帮TA砍价'
-      _data.path += '&kjJoinUid=' + this.data.kjJoinUid
+  },
+  onShareTimeline() {
+    return {
+      title: this.data.price.skuName,
+      query: 'id=' + this.data.goodsId + '&goodsId=' + this.data.goodsId2 + '&inviter_id=' + wx.getStorageSync('uid'),
+      imageUrl: wx.getStorageSync('share_pic'),
     }
-    return _data
   },
   reputation: function(goodsId) {
     var that = this;
@@ -680,12 +688,16 @@ Page({
   },
   async drawSharePic() {
     const _this = this
+    const accountInfo = wx.getAccountInfoSync()
+    const envVersion = accountInfo.miniProgram.envVersion
     const qrcodeRes = await WXAPI.wxaQrcode({
       scene: _this.data.goodsId + ',' + _this.data.goodsId2 + ',' + wx.getStorageSync('uid'),
       page: 'pages/goods-details/vop',
       is_hyaline: true,
       autoColor: true,
-      expireHours: 1
+      expireHours: 1,
+      env_version: envVersion,
+      check_path: envVersion == 'release' ? true : false,
     })
     if (qrcodeRes.code != 0) {
       wx.showToast({
@@ -803,11 +815,39 @@ Page({
         })
       },
       fail: (res) => {
-        wx.showToast({
-          title: res.errMsg,
-          icon: 'none',
-          duration: 2000
-        })
+        if (res.errMsg.indexOf('fail privacy permission is not authorized') != -1) {
+          wx.showModal({
+            content: '请阅读并同意隐私条款以后才能继续本操作',
+            confirmText: '阅读协议',
+            cancelText: '取消',
+            success (res) {
+              if (res.confirm) {
+                wx.requirePrivacyAuthorize() // 弹出用户隐私授权框
+              }
+            }
+          })
+        } else if (res.errMsg.indexOf('fail auth deny') != -1) {
+          wx.showModal({
+            content: '本次操作需要您同意并将图片写入手机相册',
+            confirmText: '立即授权',
+            cancelText: '取消',
+            success (res) {
+              if (res.confirm) {
+                // 弹出设置窗口，让用户去设置
+                wx.openSetting({
+                  withSubscriptions: true,
+                  fail: aaa => console.log(aaa)
+                });
+              }
+            }
+          })
+        } else {
+          console.error(res);
+          wx.showToast({
+            title: res.errMsg,
+            icon: 'none'
+          })
+        }
       }
     })
   },
@@ -834,5 +874,19 @@ Page({
     wx.switchTab({
       url: '/pages/index/index',
     })
-  }
+  },
+  customerService() {
+    wx.openCustomerServiceChat({
+      extInfo: {url: wx.getStorageSync('customerServiceChatUrl')},
+      corpId: wx.getStorageSync('customerServiceChatCorpId'),
+      showMessageCard: true,
+      sendMessageTitle: this.data.price.skuName,
+      sendMessagePath: '/pages/goods-details/vop?id='+ this.data.goodsId +'&goodsId=' + this.data.goodsId2,
+      sendMessageImg: this.data.imageDomain + this.data.price.pic,
+      success: res => {},
+      fail: err => {
+        console.error(err)
+      }
+    })
+  },
 })

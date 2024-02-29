@@ -1,7 +1,7 @@
 const WXAPI = require('apifm-wxapi')
 const AUTH = require('../../utils/auth')
 const TOOLS = require('../../utils/tools.js')
-
+const CONFIG = require('../../config.js')
 Page({
 	data: {
     balance:0.00,
@@ -36,7 +36,9 @@ Page({
         TOOLS.showTabBarBadge();
       } else {
         AUTH.authorize().then(res => {
-          AUTH.bindSeller()
+          if (CONFIG.bindSeller) {
+            AUTH.bindSeller()
+          }
           _this.getUserApiInfo();
           _this.getUserAmount();
           _this.orderStatistics();
@@ -59,6 +61,7 @@ Page({
       show_score_exchange_growth: wx.getStorageSync('show_score_exchange_growth'),
       show_score_sign: wx.getStorageSync('show_score_sign'),
       fx_type: wx.getStorageSync('fx_type'),
+      customerServiceType: CONFIG.customerServiceType
     })
   },
   async getUserApiInfo() {
@@ -72,10 +75,6 @@ Page({
       _data.nick = res.data.base.nick
       if (this.data.order_hx_uids && this.data.order_hx_uids.indexOf(res.data.base.id) != -1) {
         _data.canHX = true // 具有扫码核销的权限
-      }
-      const adminUserIds = wx.getStorageSync('adminUserIds')
-      if (adminUserIds && adminUserIds.indexOf(res.data.base.id) != -1) {
-        _data.isAdmin = true
       }
       if (res.data.peisongMember && res.data.peisongMember.status == 1) {
         _data.memberChecked = false
@@ -147,11 +146,17 @@ Page({
   },
   scanOrderCode(){
     wx.scanCode({
-      onlyFromCamera: true,
       success(res) {
-        wx.navigateTo({
-          url: '/pages/order-details/scan-result?hxNumber=' + res.result,
-        })
+        console.log('res', res);
+        if (res.scanType == 'WX_CODE' && res.path) {
+          wx.navigateTo({
+            url: '/' + res.path,
+          })
+        } else {
+          wx.navigateTo({
+            url: '/pages/order-details/scan-result?hxNumber=' + res.result,
+          })
+        }
       },
       fail(err) {
         console.error(err)
@@ -211,7 +216,7 @@ Page({
   async onChooseAvatar(e) {
     console.log(e);
     const avatarUrl = e.detail.avatarUrl
-    let res = await WXAPI.uploadFile(wx.getStorageSync('token'), avatarUrl)
+    let res = await WXAPI.uploadFileV2(wx.getStorageSync('token'), avatarUrl)
     if (res.code != 0) {
       wx.showToast({
         title: res.msg,
@@ -234,5 +239,20 @@ Page({
       title: '设置成功',
     })
     this.getUserApiInfo()
-  }
+  },
+  goUserCode() {
+    wx.navigateTo({
+      url: '/pages/my/user-code',
+    })
+  },
+  customerService() {
+    wx.openCustomerServiceChat({
+      extInfo: {url: wx.getStorageSync('customerServiceChatUrl')},
+      corpId: wx.getStorageSync('customerServiceChatCorpId'),
+      success: res => {},
+      fail: err => {
+        console.error(err)
+      }
+    })
+  },
 })
