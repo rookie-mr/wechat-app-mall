@@ -32,6 +32,7 @@ Page({
     goodsList: [],
     isNeedLogistics: 0, // 是否需要物流信息
     yunPrice: 0,
+    amountLogistics2: 0,
     allGoodsAndYunPrice: 0,
     goodsJsonStr: "",
     orderType: "", //订单类型，购物车下单或立即支付下单，默认是购物车， buyNow 说明是立即购买 
@@ -364,6 +365,7 @@ Page({
       let isNeedLogistics = false
       let allGoodsAndYunPrice = 0
       let yunPrice = 0
+      let amountLogistics2 = 0
       let deductionMoney = 0
       let couponAmount = 0
       for (let index = 0; index < shopList.length; index++) {
@@ -445,6 +447,7 @@ Page({
           }
           allGoodsAndYunPrice += res.data.amountReal
           yunPrice += res.data.amountLogistics
+          amountLogistics2 += res.data.amountLogistics2 || 0
           deductionMoney += res.data.deductionMoney
           couponAmount += res.data.couponAmount
         }
@@ -454,7 +457,9 @@ Page({
         totalScoreToPay,
         isNeedLogistics,
         allGoodsAndYunPrice,
+        goodsAdditionalPriceMap: res.data.goodsAdditionalPriceMap,
         yunPrice,
+        amountLogistics2,
         hasNoCoupons: true,
         deductionMoney,
         couponAmount
@@ -538,7 +543,9 @@ Page({
           totalScoreToPay: res.data.score,
           isNeedLogistics: res.data.isNeedLogistics,
           allGoodsAndYunPrice: res.data.amountReal,
+          goodsAdditionalPriceMap: res.data.goodsAdditionalPriceMap,
           yunPrice: res.data.amountLogistics,
+          amountLogistics2: res.data.amountLogistics2,
           hasNoCoupons,
           coupons,
           deductionMoney: res.data.deductionMoney,
@@ -824,42 +831,23 @@ Page({
       })
     }
   },
-  async getPhoneNumber(e) {
-    if (!e.detail.errMsg || e.detail.errMsg != "getPhoneNumber:ok") {
-      wx.showToast({
-        title: e.detail.errMsg,
-        icon: 'none'
-      })
-      return;
-    }
-    let res
-    const extConfigSync = wx.getExtConfigSync()
-    if (extConfigSync.subDomain) {
-      // 服务商模式
-      res = await WXAPI.wxappServiceBindMobile({
-        token: wx.getStorageSync('token'),
-        code: this.data.code,
-        encryptedData: e.detail.encryptedData,
-        iv: e.detail.iv,
-      })
-    } else {
-      res = await WXAPI.bindMobileWxappV2(wx.getStorageSync('token'), e.detail.code)
-    }
-    if (res.code == 0) {
-      wx.showToast({
-        title: '读取成功',
-        icon: 'success'
-      })
-      this.setData({
-        mobile: res.data,
-        bindMobileStatus: 1
-      })
-    } else {
-      wx.showToast({
-        title: res.msg,
-        icon: 'none'
-      })
-    }
+  bindMobile() {
+    this.setData({
+      bindMobileShow: true
+    })
+  },
+  bindMobileOk(e) {
+    console.log(e.detail); // 这里是组件里data的数据
+    this.setData({
+      bindMobileShow: false,
+      mobile: e.detail.mobile,
+      bindMobileStatus: 1
+    })
+  },
+  bindMobileCancel() {
+    this.setData({
+      bindMobileShow: false
+    })
   },
   deductionScoreChange(event) {
     this.setData({

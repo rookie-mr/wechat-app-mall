@@ -8,6 +8,181 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/to-pay-order/index",
+          "pathName": "pages/to-pay-order/index",
+          "query": "orderType=buyNow",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/order-details/index",
+          "pathName": "pages/order-details/index",
+          "query": "id=4862932",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/goods-details/index",
+          "pathName": "pages/goods-details/index",
+          "query": "id=235853",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/to-pay-order/index",
+          "pathName": "pages/to-pay-order/index",
+          "query": "orderType=buyNow",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/pwd-pay/reset",
+          "pathName": "pages/pwd-pay/reset",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/my/info",
+          "pathName": "pages/my/info",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/my/info-menu",
+          "pathName": "pages/my/info-menu",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/maidan/index",
+          "pathName": "pages/maidan/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/recharge/index",
+          "pathName": "pages/recharge/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/address-add/index",
+          "pathName": "pages/address-add/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/maidan/index",
+          "pathName": "pages/maidan/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/order/refundApply",
+          "pathName": "pages/order/refundApply",
+          "query": "id=4638527",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/order-list/index",
+          "pathName": "pages/order-list/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/goods-details/index",
+          "pathName": "pages/goods-details/index",
+          "query": "id=4232",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/my/index",
+          "pathName": "pages/my/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/goods-details/index",
+          "pathName": "pages/goods-details/index",
+          "query": "id=810285",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/cms/list",
+          "pathName": "pages/cms/list",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/goods-details/index",
+          "pathName": "pages/goods-details/index",
+          "query": "id=810285",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/category/category",
+          "pathName": "pages/category/category",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/goods-details/index",
+          "pathName": "pages/goods-details/index",
+          "query": "id=235853",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/goods-details/index",
+          "pathName": "pages/goods-details/index",
+          "query": "id=1774762",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/goods-details/index",
+          "pathName": "pages/goods-details/index",
+          "query": "id=1774326",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/raffle/index",
+          "pathName": "pages/raffle/index",
+          "query": "id=393",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/raffle/index",
+          "pathName": "pages/raffle/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/coupons/index",
+          "pathName": "pages/coupons/index",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/address-add/index",
           "pathName": "pages/address-add/index",
           "query": "",
@@ -679,5 +854,6 @@
     }
   },
   "description": "项目私有配置文件。此文件中的内容将覆盖 project.config.json 中的相同字段。项目的改动优先同步到此文件中。详见文档：https://developers.weixin.qq.com/miniprogram/dev/devtools/projectconfig.html",
-  "libVersion": "3.3.4"
+  "libVersion": "3.4.8",
+  "projectname": "%E5%A4%A9%E4%BD%BF%E7%AB%A5%E8%A3%85"
 }
